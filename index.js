@@ -1,42 +1,41 @@
 const express = require('express');
 const nodemailer = require("nodemailer");
 const cors = require('cors');
+const bodyParser = require('body-parser')
 
 const app = express();
-app.use(cors)
+
+app.use(cors())
+app.use(bodyParser.urlencoded({extended: false}))
+app.use(bodyParser.json())
 
 const port = process.env.PORT || 5000
-// const smtpLogin = process.env.SMTP_LOGIN || '...'
-// const smtpPassword = process.env.SMTP_PASSWORD || '...'
+const smtpLogin = process.env.SMTP_LOGIN || 'email'
+const smtpPassword = process.env.SMTP_PASSWORD || 'password'
 
 let transporter = nodemailer.createTransport({
-    host: 'smtp.mail.ru',
-    port: 465,
-    secure: true,
-    tls: {
-      rejectUnauthorized: false
-    },
+    service: "gmail",
     auth: {
-        user: '',
-        pass: '',
-        // pass: '',
+        user: smtpLogin,
+        pass: smtpPassword,
     },
 });
 
 app.get('/', function (req, res) {
-    res.send('Hello World!');
+    res.send('Hello, my <a href="https://traihel.github.io/Portfolio">portfolio</a> ');
 });
 
-app.get('/sendMessage', async function (req, res) {
+app.post('/sendMessage', async function (req, res) {
+    const {name, email, formMessage} = req.body
     let info = await transporter.sendMail({
-        from: 'test name', // от кого
+        from: 'My profile page', // от кого
         to: "vovatraigel@gmail.com", // куда
-        subject: "тестирую gmail", // тема сообщения
-        // text: "Привет это моё соббщение", // текст сообщения
-        html: "<b>Привет это моё соббщение</b>",
+        subject: "Сообщение с вашего портфолио", // тема сообщения
+        html: `<div><h1>Message from your portfolio</h1><div>Name: ${name}</div><div>Email: ${email}</div><div>Message: ${formMessage}</div></div>`,
     });
+    res.send(res.body);
 });
 
 app.listen(port, function () {
-    console.log('Example app 5000')
+    console.log(`Example app ${port}`)
 });
